@@ -22,7 +22,7 @@ public class Reader {
   }
   
   // null to EOF, return actual length
-  byte[] read(long len) {
+  byte[] read(int len) {
   	try {
 			if (len <= 0 || !isOpen()) return null;
 			
