@@ -26,6 +26,7 @@ public class Reader {
   	try {
 			if (len <= 0 || !isOpen()) return null;
 			
+			//Set the length of data to the minimun of remainLength and len
 			long dataLength = remainLength < len ? remainLength:len;
 			if (dataLength == 0) return null;
 			byte[] data = new byte[(int) dataLength];
