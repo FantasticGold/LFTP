@@ -1,4 +1,4 @@
-package team.lftp;
+package team.LFTP;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -19,7 +19,7 @@ public class Server {
   static final String REQUEST = "request";
   private byte[] buf = new byte[MAX_LENGTH];
   private DatagramSocket socket;
-  private DatagramPacket rcvPacket;
+  private DatagramPacket recvPacket;
   private String rcvStr;
   private InetAddress address;
   private int port;
@@ -30,26 +30,26 @@ public class Server {
     } catch (SocketException e) {
       e.printStackTrace();
     }
-    rcvPacket = new DatagramPacket(buf, buf.length);
+    recvPacket = new DatagramPacket(buf, buf.length);
   }
   
   private void listen() {
     while (true) {
       System.out.println("Listening... ");
-      rcvStr = rcv();
+      rcvStr = recv();
       
 //      if (rcvStr.equals(REQUEST)) {
-        address = rcvPacket.getAddress();
-        port = rcvPacket.getPort();
+        address = recvPacket.getAddress();
+        port = recvPacket.getPort();
         Random random = new Random();
         int myPort = random.nextInt(PORT_RANGE) + PORT_MIN;
-        snd(String.valueOf(myPort));
+        send(String.valueOf(myPort));
         new Thread(new Connection(address, port, myPort)).start();
 //      }
     }
   }
 
-  private void snd(String str) {
+  private void send(String str) {
     buf = str.getBytes();
     DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
     try {
@@ -59,15 +59,15 @@ public class Server {
     }
   }
   
-  private String rcv() {
+  private String recv() {
     try {
-      socket.receive(rcvPacket);
+      socket.receive(recvPacket);
     } catch (IOException e1) {
       e1.printStackTrace();
     }
     String str = null;
     try {
-      str = new String(rcvPacket.getData(), "UTF-8");
+      str = new String(recvPacket.getData(), "UTF-8");
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -79,6 +79,7 @@ public class Server {
     server.listen();
   }
   
+  // no using
   private class Connection implements Runnable {
     private byte[] buf = new byte[MAX_LENGTH];
     private DatagramSocket socket;

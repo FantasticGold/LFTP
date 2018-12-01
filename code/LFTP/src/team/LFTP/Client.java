@@ -1,4 +1,4 @@
-package team.lftp;
+package team.LFTP;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -22,7 +22,7 @@ public class Client {
   private InetAddress address;
   private int port;
   
-  private Client(InetAddress address, int port) {
+  private Client() {
     this.address = address;
     this.port = port;
     System.out.println("port = " + port);
@@ -34,27 +34,27 @@ public class Client {
     rcvPacket = new DatagramPacket(buf, buf.length);
   }
   
-  private void connect(InetAddress address) {
+  public void connect(InetAddress address, int port) {
     port = Server.PORT_LISTEN;
-    snd(Server.REQUEST);
-    rcvStr = rcv();
+    send(Server.REQUEST);
+    rcvStr = recv();
     System.out.println(rcvStr);
     port = Integer.parseInt(rcvStr.substring(0, 4));
   }
   
-  private void start() {
-    while (true) {
-      System.out.print("Info: ");
-      Scanner scanner = new Scanner(System.in);
-      String info = scanner.nextLine();
-      
-      snd(info);
-      rcvStr = rcv();
-      System.out.println(rcvStr);
-    }
-  }
+//  private void start() {
+//    while (true) {
+//      System.out.print("Info: ");
+//      Scanner scanner = new Scanner(System.in);
+//      String info = scanner.nextLine();
+//      
+//      send(info);
+//      rcvStr = recv();
+//      System.out.println(rcvStr);
+//    }
+//  }
   
-  private void snd(String str) {
+  private void send(DatagramPacket packet) {
     buf = str.getBytes();
     DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
     try {
@@ -64,9 +64,10 @@ public class Client {
     }
   }
   
-  private String rcv() {
+  private DatagramPacket recv() {
     try {
       socket.receive(rcvPacket);
+      return rcvPacket;
     } catch (IOException e1) {
       e1.printStackTrace();
     }
@@ -77,29 +78,5 @@ public class Client {
       e.printStackTrace();
     }
     return str;
-  }
-  
-  public static void main(String[] args) {
-    // address
-    System.out.print("Address: ");
-    InetAddress address = null;
-    Scanner scanner = new Scanner(System.in);
-    try {
-      address = InetAddress.getByName(scanner.nextLine());
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-    }
-    
-    // port
-    Random random = new Random();
-    int port = random.nextInt(PORT_RANGE) + PORT_MIN;
-    
-    // connect
-    Client client = new Client(address, port);
-    System.out.println("Connecting...");
-    client.connect(address);
-    
-    // start
-    client.start();
   }
 } 
