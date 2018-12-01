@@ -13,7 +13,7 @@ public class Utils {
     String string = null;
     
     try {
-      string = new String(bytes, "UTF-8");
+      string = new String(bytes, "UTF-8").trim();
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }

@@ -12,6 +12,9 @@ import javax.print.attribute.standard.Finishings;
 import javax.xml.crypto.Data;
 
 public class ServerThread implements Runnable {
+  static final int CMD_UPLOAD = 9987;
+  static final int CMD_DOWNLOAD = 9983;
+  static final int TAG_FINISH = 0;
   private byte[] buf = new byte[Packer.MAX_LENGTH];
   private DatagramSocket socket;
   private DatagramPacket recvPacket;
@@ -34,12 +37,40 @@ public class ServerThread implements Runnable {
       int num = Utils.toInt(packer.getData());
       if (num == Client.FINISH) {
         break;
+      } else if (num == CMD_UPLOAD) {
+        uploadService();
+      } else if (num == CMD_DOWNLOAD) {
+        downloadService();
       }
-      String string = Utils.toString(packer.getData());
-      string = "ACK: " + string;
-      byte[] data = Utils.toBytes(string);
+    }
+  }
+  
+  private void uploadService() {
+    recv();
+    String name = Utils.toString(packer.getData());
+    
+    Writer writer = new Writer(?"F:\\SYSU_3.1\\upload.txt");
+    while (true) {
+      recv();
+      byte[] data = packer.getData();
+      if (Utils.toInt(data) == TAG_FINISH) {
+        break;
+      } else {
+        writer.write(data);
+      }
+    }
+  }
+  
+  private void downloadService() {
+    recv();
+    String name = Utils.toString(packer.getData());
+    
+    Reader reader = new Reader(name);
+    while (reader.isOpen()) {
+      byte[] data = reader.read(Packer.MAX_DATA_LENGTH);
       send(packer.toPacket(data));
     }
+    send(packer.toPacket(Utils.toBytes(ServerThread.TAG_FINISH)));
   }
 
   private void send(DatagramPacket packet) {

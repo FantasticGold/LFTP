@@ -44,6 +44,34 @@ public class Client {
     recv();
     packer.setPort(Utils.toInt(packer.getData()));
   }
+  
+  public void upload(String name) {
+    send(ServerThread.CMD_UPLOAD);
+    send(name);
+    
+    Reader reader = new Reader(name);
+    while (reader.isOpen()) {
+      byte[] data = reader.read(Packer.MAX_DATA_LENGTH);
+      send(packer.toPacket(data));
+    }
+    send(packer.toPacket(Utils.toBytes(ServerThread.TAG_FINISH)));
+  }
+
+  public void download(String name) {
+    send(ServerThread.CMD_DOWNLOAD);
+    send(name);
+    
+    Writer writer = new Writer(?"F:\\SYSU_3.1\\download.txt");
+    while (true) {
+      recv();
+      byte[] data = packer.getData();
+      if (Utils.toInt(data) == ServerThread.TAG_FINISH) {
+        break;
+      } else {
+        writer.write(data);
+      }
+    }
+  }
 
   public void send(int num) {
     send(packer.toPacket(Utils.toBytes(num)));

@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 public class Writer {
 	File file;
 	FileOutputStream fileOutputStream;
+	
   public Writer(String name) {
   	try {
 			file = new File(name);
@@ -30,4 +31,14 @@ public class Writer {
 			e.printStackTrace();
 		}
 	}
+
+  // test
+  public static void main(String[] args) {
+    Writer writer = new Writer("F:\\SYSU_3.1\\test.txt");
+    Reader reader = new Reader("F:\\SYSU_3.1\\hello.txt");
+    while (reader.isOpen()) {
+      byte[] data = reader.read(20);
+      writer.write(data);
+    }
+  }
 }

@@ -27,10 +27,18 @@ public class LFTP_Client {
     String cmd;
     while (true) {
       showUI();
-      cmd = scanner.nextLine();
+      cmd = scanner.next();
       
-      client.send(cmd);
-      client.recv();
+      if (cmd.equals("upload")) {
+        String name = scanner.next();
+        show("Uploading...");
+        client.upload(name);
+        
+      } else if (cmd.equals("download")) {
+        String name = scanner.next();
+        show("Downloading...");
+        client.download(name);
+      }
     }
   }
   
