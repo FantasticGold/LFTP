@@ -2,6 +2,7 @@ package team.LFTP;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class Writer {
 	File file;
@@ -10,16 +11,18 @@ public class Writer {
 	
   public Writer(String name, long len) {
   	try {
+  		if (len <= 0) return;
 			file = new File(name);
 			fileOutputStream = new FileOutputStream(file);
 			requiredLength = len;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
   }
   
   public void write(byte[] data) {
   	try {
+  		if (requiredLength <= 0) return;
   		if ((long) data.length >= requiredLength) {
   			fileOutputStream.write(data, 0, (int) requiredLength);
   			requiredLength = 0;
@@ -30,17 +33,18 @@ public class Writer {
   			requiredLength -= (long) data.length;
   		}
 			
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
   }
 
   // test
   public static void main(String[] args) {
-    Writer writer = new Writer("C:\\Users\\czj\\Desktop\\hello2.txt", 10);
-    Reader reader = new Reader("C:\\Users\\czj\\Desktop\\hello.txt");
+  	Reader reader = new Reader("C:\\Users\\czj\\Desktop\\hello.txt");
+    Writer writer = new Writer("C:\\Users\\czj\\Desktop\\hello2.txt", reader.getFileLength());
+    
     while (reader.isOpen()) {
-      byte[] data = reader.read(20);
+      byte[] data = reader.read(1);
       writer.write(data);
     }
   }

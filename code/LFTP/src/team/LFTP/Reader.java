@@ -2,19 +2,21 @@ package team.LFTP;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 public class Reader {
-	long remainLength = 0;
+	private long remainLength = 0;
 	File file = null;
 	FileInputStream fileInputStream = null;
+	private long fileLength = 0;
   public Reader(String name) {
     try {
     	file = new File(name);
     	if (file.exists() && file.isFile()) {
     		fileInputStream = new FileInputStream(file);
-    		remainLength = file.length();
+    		fileLength = remainLength = file.length();
     	}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
   }
@@ -25,7 +27,7 @@ public class Reader {
 			if (len <= 0 || !isOpen()) return null;
 			
 			//Set the length of data to the minimun of remainLength and len
-			long dataLength = remainLength < len ? remainLength:len;
+			long dataLength = remainLength < len ? remainLength : len;
 			if (dataLength == 0) return null;
 			byte[] data = new byte[(int) dataLength];
 			fileInputStream.read(data);
@@ -36,7 +38,7 @@ public class Reader {
 				fileInputStream.close();
 			}
 			return data;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
   	return null;
@@ -44,5 +46,9 @@ public class Reader {
   
   public boolean isOpen() {
 		return remainLength != 0;
+	}
+  
+  public long getFileLength() {
+		return fileLength;
 	}
 }
