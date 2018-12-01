@@ -7,13 +7,11 @@ public class Reader {
 	long remainLength = 0;
 	File file = null;
 	FileInputStream fileInputStream = null;
-	private boolean Opened = false;
   public Reader(String name) {
     try {
     	file = new File(name);
     	if (file.exists() && file.isFile()) {
     		fileInputStream = new FileInputStream(file);
-    		Opened = true;
     		remainLength = file.length();
     	}
 		} catch (Exception e) {
@@ -36,7 +34,6 @@ public class Reader {
 			//If reach the end, close fileInputStream
 			if (remainLength == 0) {
 				fileInputStream.close();
-				Opened = false;
 			}
 			return data;
 		} catch (Exception e) {
@@ -46,6 +43,6 @@ public class Reader {
   }
   
   public boolean isOpen() {
-		return Opened;
+		return remainLength != 0;
 	}
 }
