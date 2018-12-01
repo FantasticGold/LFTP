@@ -13,45 +13,45 @@ import org.omg.CORBA.SystemException;
 
 public class Server {
   static final int PORT_LISTEN = 1061;
-  static final int MAX_LENGTH = 1024;
   static final int PORT_MIN = 2000;
   static final int PORT_RANGE = 2000;
-  static final String REQUEST = "request";
-  private byte[] buf = new byte[MAX_LENGTH];
+  static final int REQUEST = 1327;
+  private byte[] buf = new byte[Packer.MAX_LENGTH];
   private DatagramSocket socket;
   private DatagramPacket recvPacket;
-  private String rcvStr;
-  private InetAddress address;
-  private int port;
+  private Packer packer;
   
-  private Server() {
+  public Server() {
     try {
       socket = new DatagramSocket(PORT_LISTEN);
     } catch (SocketException e) {
       e.printStackTrace();
     }
     recvPacket = new DatagramPacket(buf, buf.length);
+    packer = new Packer(null, 0);
   }
   
-  private void listen() {
+  public void listen() {
     while (true) {
       System.out.println("Listening... ");
-      rcvStr = recv();
+      recv();
       
-//      if (rcvStr.equals(REQUEST)) {
-        address = recvPacket.getAddress();
-        port = recvPacket.getPort();
+      if (REQUEST == Utils.toInt(packer.getData())) {
+        InetAddress address = recvPacket.getAddress();
+        int port = recvPacket.getPort();
+        packer = new Packer(address, port);
+        
         Random random = new Random();
         int myPort = random.nextInt(PORT_RANGE) + PORT_MIN;
-        send(String.valueOf(myPort));
-        new Thread(new Connection(address, port, myPort)).start();
-//      }
+        byte[] data = Utils.toBytes(myPort);
+        send(packer.toPacket(data));
+        
+        new Thread(new ServerThread(address, port, myPort)).start();
+      }
     }
   }
 
-  private void send(String str) {
-    buf = str.getBytes();
-    DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+  private void send(DatagramPacket packet) {
     try {
       socket.send(packet);
     } catch (IOException e) {
@@ -59,78 +59,13 @@ public class Server {
     }
   }
   
-  private String recv() {
+  private void recv() {
     try {
       socket.receive(recvPacket);
     } catch (IOException e1) {
       e1.printStackTrace();
     }
-    String str = null;
-    try {
-      str = new String(recvPacket.getData(), "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    return str;
+    packer.toData(recvPacket);
   }
   
-  public static void main(String[] args) {
-    Server server = new Server();
-    server.listen();
-  }
-  
-  // no using
-  private class Connection implements Runnable {
-    private byte[] buf = new byte[MAX_LENGTH];
-    private DatagramSocket socket;
-    private DatagramPacket rcvPacket;
-    private String rcvStr;
-    private InetAddress address;
-    private int port;
-    
-    public Connection(InetAddress address, int port, int myPort) {
-      this.address = address;
-      this.port = port;
-      try {
-        socket = new DatagramSocket(myPort);
-      } catch (SocketException e) {
-        e.printStackTrace();
-      }
-      rcvPacket = new DatagramPacket(buf, buf.length);
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        rcvStr = rcv();
-        snd("ACK");
-      }
-    }
-
-    private void snd(String str) {
-      buf = str.getBytes();
-      DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-      try {
-        socket.send(packet);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-    
-    private String rcv() {
-      try {
-        socket.receive(rcvPacket);
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
-      String str = null;
-      try {
-        str = new String(rcvPacket.getData(), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      }
-      return str;
-    }
-    
-  }
 }
