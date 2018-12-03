@@ -8,8 +8,6 @@ public class Receiver {
   DatagramSocket socket;
   Packer packer;
   Writer writer;
-  private byte[] buf = new byte[Packer.MAX_LENGTH];
-  private DatagramPacket recvPacket;
   
   // receive window
   static final int RECV_WND_MAX_SIZE = 1024;
@@ -22,7 +20,6 @@ public class Receiver {
     this.socket = socket;
     this.packer = packer;
     this.writer = writer;
-    recvPacket = new DatagramPacket(buf, buf.length);
     
     wndData = new DatagramPacket[RECV_WND_MAX_SIZE];
     wndAck = new boolean[RECV_WND_MAX_SIZE];
@@ -40,6 +37,8 @@ public class Receiver {
   public void recv() {
     while (!writer.isEnd()) {
       // receive datagram packet
+      byte[] buf = new byte[Packer.MAX_LENGTH];
+      DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
       try {
         socket.receive(recvPacket);
       } catch (IOException e) {
@@ -66,18 +65,12 @@ public class Receiver {
         ackNum = ackNum + 1;
       }
       
-      System.out.println("确认，确认号：" + ackNum);
       packer.setAckNum(ackNum);
       try {
         socket.send(packer.toPacket(null));
       } catch (IOException e) {
         e.printStackTrace();
       }
-    }
-    for (int i = 0; i < ackNum; ++i) {
-      System.out.println("类：" + wndData[getPos(i)]);
-      packer.toData(wndData[getPos(i)]);
-//      System.out.println("序列号：" + packer.getSeqNum());
     }
   }
 }
