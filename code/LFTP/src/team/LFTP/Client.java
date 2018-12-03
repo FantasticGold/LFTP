@@ -60,7 +60,7 @@ public class Client {
     send(ServerThread.CMD_DOWNLOAD);
     send(name);
     
-    Receiver receiver = new Receiver(socket, packer, 0, name, 0);
+    Receiver receiver = new Receiver(socket, packer, 0, name, 0, 0);
     receiver.recv();
   }
 

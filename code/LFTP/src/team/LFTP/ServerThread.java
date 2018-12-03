@@ -52,7 +52,7 @@ public class ServerThread implements Runnable {
     int len = Utils.toInt(packer.getData());
     name = "F:\\recv.bmp";
     
-    Receiver receiver = new Receiver(socket, packer, 0, name, len);
+    Receiver receiver = new Receiver(socket, packer, 0, name, len, 0);
     receiver.recv();
   }
   
