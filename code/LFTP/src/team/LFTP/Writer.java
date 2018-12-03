@@ -10,6 +10,7 @@ public class Writer {
 	long requiredLength = 0;
 	
   public Writer(String name, long len) {
+    System.out.println("写文件长度：" + len);
   	try {
   		if (len <= 0) return;
 			file = new File(name);
@@ -18,6 +19,11 @@ public class Writer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+  }
+  
+  // check end
+  public boolean isEnd() {
+    return requiredLength <= 0;
   }
   
   public void write(byte[] data) {

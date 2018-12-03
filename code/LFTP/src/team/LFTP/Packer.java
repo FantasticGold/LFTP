@@ -33,7 +33,9 @@ public class Packer {
   }
   
   DatagramPacket toPacket(byte[] inputdata) {
-  	byte[] bytes = new byte[inputdata.length+16];
+    // inputdata == null
+    int len = inputdata == null ? 0 : inputdata.length;
+  	byte[] bytes = new byte[len+16];
   	
   	byte[] seqdata = Utils.toBytes(seq);
   	byte[] ackdata = Utils.toBytes(ack);
@@ -48,8 +50,12 @@ public class Packer {
   	System.arraycopy(ackdata, 0, bytes, 4, 4);
   	System.arraycopy(flagdata, 0, bytes, 8, 4);
   	System.arraycopy(wnddata, 0, bytes, 12, 4);
-  	System.arraycopy(inputdata, 0, bytes, 16, inputdata.length);
   	
+    // inputdata == null
+  	if (inputdata != null) {
+      System.arraycopy(inputdata, 0, bytes, 16, inputdata.length);
+  	}
+
     packet = new DatagramPacket(bytes, bytes.length, address, port);
     return packet;
   }
@@ -103,7 +109,8 @@ public class Packer {
   
   //Get & set data
   byte[] getData() {
-    return packet.getData();
+//    return packet.getData();
+    return data;
   }
   
   public void setData(byte[] data) {

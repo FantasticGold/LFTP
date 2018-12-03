@@ -48,17 +48,12 @@ public class ServerThread implements Runnable {
   private void uploadService() {
     recv();
     String name = Utils.toString(packer.getData());
+    recv();
+    int len = Utils.toInt(packer.getData());
+    name = "F:\\recv.bmp";
     
-    Writer writer = new Writer(?"F:\\SYSU_3.1\\upload.txt");
-    while (true) {
-      recv();
-      byte[] data = packer.getData();
-      if (Utils.toInt(data) == TAG_FINISH) {
-        break;
-      } else {
-        writer.write(data);
-      }
-    }
+    Receiver receiver = new Receiver(socket, packer, 0, name, len);
+    receiver.recv();
   }
   
   private void downloadService() {

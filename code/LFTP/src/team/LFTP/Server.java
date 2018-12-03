@@ -35,8 +35,10 @@ public class Server {
     while (true) {
       System.out.println("Listening... ");
       recv();
+      System.out.println("收到连接请求");
       
       if (REQUEST == Utils.toInt(packer.getData())) {
+        System.out.println("接收连接");
         InetAddress address = recvPacket.getAddress();
         int port = recvPacket.getPort();
         packer = new Packer(address, port);
