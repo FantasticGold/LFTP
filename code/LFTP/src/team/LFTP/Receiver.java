@@ -10,7 +10,7 @@ public class Receiver {
   Writer writer;
   
   // receive window
-  static final int RECV_WND_MAX_SIZE = 1024;
+  static final int RECV_WND_MAX_SIZE = 256;
   DatagramPacket[] wndData;
   boolean[] wndAck;
   int seqNum;
@@ -62,6 +62,7 @@ public class Receiver {
         packer.toData(wndData[getPos(ackNum)]);
 //        System.out.println("写序列号：" + packer.getSeqNum());
         writer.write(packer.getData());
+        wndAck[getPos(ackNum)] = false;
         ackNum = ackNum + 1;
       }
       

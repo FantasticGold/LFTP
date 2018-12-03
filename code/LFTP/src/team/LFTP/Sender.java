@@ -6,7 +6,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Queue;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.print.attribute.standard.PrinterMessageFromOperator;
 import javax.sound.sampled.Port;
@@ -18,6 +20,7 @@ public class Sender {
   Packer packer;
   Reader reader;
   TimerManager manager;
+  Queue<Integer> queue;
 
   // send window
   static final int SEND_WND_MAX_SIZE = 1024;
@@ -31,11 +34,15 @@ public class Sender {
     this.packer = packer;
     this.reader = reader;
     manager = TimerManager.getInstance();
+    queue = new ConcurrentLinkedQueue<>(); 
     
     wndData = new DatagramPacket[SEND_WND_MAX_SIZE];
+    for (int i = 0; i < wndData.length; ++i) {
+      wndData[i] = null;
+    }
     seqNum = num;
     ackNum = num;
-    wndSize = SEND_WND_MAX_SIZE;
+    wndSize = Receiver.RECV_WND_MAX_SIZE;
   }
   
   private static int getPos(int num) {
@@ -55,12 +62,26 @@ public class Sender {
     new Thread(new AckReceiver()).start(); // receive ack
     
     while (reader.isOpen()) {
-      while (isFull());  // wait for space
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e1) {
+        e1.printStackTrace();
+      }
+      DatagramPacket packet;
+      if (!queue.isEmpty()) {
+        int num = queue.poll();
+        packet = wndData[num];
+        System.out.println("超时重传，确认号：" + num);
+      } else if (!isFull()) {
+        packer.setSeqNum(seqNum);
+        packet = packer.toPacket(reader.read(Packer.MAX_DATA_LENGTH));
+        System.out.println("读，序列号：" + seqNum);
+        wndData[getPos(seqNum)] = packet;
+        seqNum = seqNum + 1;
+      } else {
+        continue;
+      }
       
-      packer.setSeqNum(seqNum);
-      DatagramPacket packet = packer.toPacket(reader.read(Packer.MAX_DATA_LENGTH));
-      wndData[getPos(seqNum)] = packet;
-      seqNum = seqNum + 1;
       try {
         socket.send(packet);
       } catch (IOException e) {
@@ -79,12 +100,7 @@ public class Sender {
       manager.setTask(new TimerTask() {
         @Override
         public void run() {
-          System.out.println("超时重发，序列号：" + ackNum);
-          try {
-            socket.send(wndData[getPos(ackNum)]);
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
+          queue.offer(ackNum);
         }
       }, TimerManager.OVERTIME);
     }
