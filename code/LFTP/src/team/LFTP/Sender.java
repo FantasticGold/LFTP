@@ -17,52 +17,71 @@ public class Sender {
   DatagramSocket socket;
   Packer packer;
   Reader reader;
-  Window window;
   TimerManager manager;
-  private byte[] buf = new byte[Packer.MAX_LENGTH];
-  private DatagramPacket recvPacket;
+
+  // send window
+  static final int SEND_WND_MAX_SIZE = 1024;
+  DatagramPacket[] wndData;
+  int seqNum;
+  int ackNum;
+  int wndSize;
   
-  public Sender(DatagramSocket socket, Packer packer, int seq, String name) {
+  public Sender(DatagramSocket socket, Packer packer, Reader reader, int num) {
     this.socket = socket;
     this.packer = packer;
-    window = new Window(Window.WND_MAX_SIZE, seq);
-    reader = new Reader(name);
+    this.reader = reader;
     manager = TimerManager.getInstance();
-    recvPacket = new DatagramPacket(buf, buf.length);
+    
+    wndData = new DatagramPacket[SEND_WND_MAX_SIZE];
+    seqNum = num;
+    ackNum = num;
+    wndSize = SEND_WND_MAX_SIZE;
+  }
+  
+  private static int getPos(int num) {
+    return num % SEND_WND_MAX_SIZE;
+  }
+  
+  private boolean isFull() {
+    return seqNum - ackNum >= wndSize;
+  }
+  
+  private boolean isEmpty() {
+    return seqNum == ackNum;
   }
   
   public void send() {
     boolean tag = false;
-    new Thread(new RecvACK()).start(); // receive ack
+    new Thread(new AckReceiver()).start(); // receive ack
     
     while (reader.isOpen()) {
-      while (window.isFull());  // wait for space
+      while (isFull());  // wait for space
       
-      packer.setSeqNum(window.getSeq());
+      packer.setSeqNum(seqNum);
       DatagramPacket packet = packer.toPacket(reader.read(Packer.MAX_DATA_LENGTH));
-      System.out.println("发送，序列号：" + window.getSeq());
-      if (!tag) {
-        tag = true;
-        timing(window.getSeq());  // first timing
-      }
-      window.addPacket(packet);
+      wndData[getPos(seqNum)] = packet;
+      seqNum = seqNum + 1;
       try {
         socket.send(packet);
       } catch (IOException e) {
         e.printStackTrace();
       }
+      if (!tag) {
+        tag = true;
+        timing(ackNum);
+      }
     }
   }
   
-  public void timing(int ack) {
-    if (ack != manager.getAck()) {
-      manager.setAck(ack);
+  public void timing(int ackNum) {
+    if (ackNum != manager.getAckNum()) {
+      manager.setAckNum(ackNum);
       manager.setTask(new TimerTask() {
         @Override
         public void run() {
-          System.out.println("超时重发，序列号：" + ack);
+          System.out.println("超时重发，序列号：" + ackNum);
           try {
-            socket.send(window.getPacket(ack));
+            socket.send(wndData[getPos(ackNum)]);
           } catch (IOException e) {
             e.printStackTrace();
           }
@@ -71,26 +90,29 @@ public class Sender {
     }
   }
   
-  class RecvACK implements Runnable {
-    Packer recvPacker;
+  class AckReceiver implements Runnable {
+    Packer ackPacker;
+    private byte[] buf;
+    private DatagramPacket recvPacket;
     
-    public RecvACK() {
-      recvPacker = new Packer(packer.address, packer.port);
+    public AckReceiver() {
+      ackPacker = new Packer(packer.address, packer.port);
+      buf = new byte[Packer.MAX_LENGTH];
+      recvPacket = new DatagramPacket(buf, buf.length);
     }
     
     @Override
     public void run() {
-      while (reader.isOpen() || !window.isEmpty()) {
+      while (reader.isOpen() || !isEmpty()) {
         try {
           socket.receive(recvPacket);
         } catch (IOException e) {
           e.printStackTrace();
         }
-        recvPacker.toData(recvPacket);
-        int ack = recvPacker.getAckNum();
-        System.out.println("接收，确认号：" + ack);
-        window.setAck(ack);
-        timing(ack);
+        ackPacker.toData(recvPacket);
+        ackNum = ackPacker.getAckNum();
+        System.out.println("接收，确认号：" + ackNum);
+        timing(ackNum);
       }
       manager.clear();
     }

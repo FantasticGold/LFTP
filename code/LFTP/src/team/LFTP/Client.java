@@ -19,6 +19,7 @@ public class Client {
   private DatagramSocket socket;
   private DatagramPacket recvPacket;
   Packer packer;
+  Reader reader;
   
   Client() {
     Random random = new Random();
@@ -50,18 +51,23 @@ public class Client {
   public void upload(String name) {
     send(ServerThread.CMD_UPLOAD);
     send(name);
-    send((int) new Reader(name).getFileLength());
+    reader = new Reader(name);
+    send(reader.getFileLength());
     
-    Sender sender = new Sender(socket, packer, 0, name);
+    Sender sender = new Sender(socket, packer, reader, 0);
     sender.send();
   }
 
   public void download(String name) {
-    send(ServerThread.CMD_DOWNLOAD);
-    send(name);
+//    send(ServerThread.CMD_DOWNLOAD);
+//    send(name);
     
-    Receiver receiver = new Receiver(socket, packer, 0, name, 0, 0);
-    receiver.recv();
+//    Receiver receiver = new Receiver(socket, packer, 0, name, 0, 0);
+//    receiver.recv();
+  }
+
+  public void send(long num) {
+    send(packer.toPacket(Utils.toBytes(num)));
   }
 
   public void send(int num) {

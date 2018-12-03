@@ -7,10 +7,10 @@ import javax.accessibility.AccessibleKeyBinding;
 import javax.swing.text.html.HTML.Tag;
 
 public class TimerManager {
-  public static int OVERTIME = 100;
+  public static int OVERTIME = 50;
   private static TimerManager manager = null;
   private Timer timer = null;
-  private int ack;
+  private int ackNum;
   
   private TimerManager() {
     timer = new Timer();
@@ -20,16 +20,16 @@ public class TimerManager {
     if (manager == null) {
       manager = new TimerManager();
     }
-    manager.ack = -1;
+    manager.ackNum = -1;
     return manager;
   }
   
-  public int getAck() {
-    return ack;
+  public int getAckNum() {
+    return ackNum;
   }
   
-  public void setAck(int ack) {
-    this.ack = ack;
+  public void setAckNum(int ackNum) {
+    this.ackNum = ackNum;
   }
   
   public void setTask(TimerTask task, int delay) {
@@ -41,5 +41,6 @@ public class TimerManager {
   public void clear() {
     timer.cancel();
     timer = new Timer();
+    ackNum = -1;
   }
 }

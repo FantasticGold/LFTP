@@ -19,6 +19,7 @@ public class ServerThread implements Runnable {
   private DatagramSocket socket;
   private DatagramPacket recvPacket;
   Packer packer;
+  Writer writer;
   
   public ServerThread(InetAddress address, int port, int myPort) {
     try {
@@ -49,10 +50,10 @@ public class ServerThread implements Runnable {
     recv();
     String name = Utils.toString(packer.getData());
     recv();
-    int len = Utils.toInt(packer.getData());
-    name = "F:\\recv.bmp";
+    long len = Utils.toLong(packer.getData());
+    writer = new Writer("F:\\recv.bmp", len);
     
-    Receiver receiver = new Receiver(socket, packer, 0, name, len, 0);
+    Receiver receiver = new Receiver(socket, packer, writer, 0);
     receiver.recv();
   }
   
