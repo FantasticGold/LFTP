@@ -15,7 +15,7 @@ public class Reader {
     	if (file.exists() && file.isFile()) {
     		fileInputStream = new FileInputStream(file);
     		fileLength = remainLength = file.length();
-    		System.out.println("文件长度：" +file.length());
+//    		System.out.println("文件长度：" +file.length());
     	}
 		} catch (IOException e) {
 			e.printStackTrace();
