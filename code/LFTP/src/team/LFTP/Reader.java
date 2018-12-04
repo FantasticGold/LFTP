@@ -37,6 +37,7 @@ public class Reader {
 			//If reach the end, close fileInputStream
 			if (remainLength == 0) {
 				fileInputStream.close();
+				file = null;
 			}
 			return data;
 		} catch (IOException e) {
@@ -52,7 +53,8 @@ public class Reader {
   }
   
   public boolean isOpen() {
-		return remainLength != 0;
+		if (file == null) return false;
+		return true;
 	}
   
   public long getFileLength() {
