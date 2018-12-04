@@ -134,7 +134,7 @@ public class Client {
     System.arraycopy(data, 4, blen, 0, 8);
     packer.setPort(Utils.toInt(bport));
     long len = Utils.toLong(blen);
-    System.out.println("收到的长度为："+len);
+//    System.out.println("收到的长度为："+len);
     if (len == 0) return;
     writer = new Writer(name, len);
     

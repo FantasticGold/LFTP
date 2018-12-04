@@ -57,39 +57,6 @@ public class ServerThread implements Runnable {
     }
   }
   
-  private void uploadService() {
-    try {
-      Thread.sleep(10);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    
-    recv();
-    String name = Utils.toString(packer.getData());
-    recv();
-    long len = Utils.toLong(packer.getData());
-    writer = new Writer(name, len);
-    
-    Receiver receiver = new Receiver(socket, packer, writer, 0);
-    receiver.recv();
-  }
-  
-  private void downloadService() {
-    try {
-      Thread.sleep(10);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    
-    recv();
-    String name = Utils.toString(packer.getData());
-    Reader reader = new Reader(name);
-    send(reader.getFileLength());
-    
-    Sender sender = new Sender(socket, packer, reader, 0);
-    sender.send();
-  }
-  
   public void send(long num) {
     send(packer.toPacket(Utils.toBytes(num)));
   }
