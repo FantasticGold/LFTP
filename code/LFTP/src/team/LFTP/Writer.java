@@ -42,6 +42,12 @@ public class Writer {
 			e.printStackTrace();
 		}
   }
+  
+  @Override
+  protected void finalize() throws Throwable {
+    fileOutputStream.close();
+    super.finalize();
+  }
 
   // test
   public static void main(String[] args) {

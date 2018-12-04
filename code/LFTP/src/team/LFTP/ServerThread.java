@@ -21,8 +21,11 @@ public class ServerThread implements Runnable {
   Packer packer;
   Reader reader;
   Writer writer;
+  int cmd;
+  String name;
+  long len;
   
-  public ServerThread(InetAddress address, int port, int myPort) {
+  public ServerThread(InetAddress address, int port, int myPort, int cmd, String name, long len) {
     try {
       socket = new DatagramSocket(myPort);
     } catch (SocketException e) {
@@ -30,20 +33,27 @@ public class ServerThread implements Runnable {
     }
     recvPacket = new DatagramPacket(buf, buf.length);
     packer = new Packer(address, port);
+    this.cmd = cmd;
+    this.name = name;
+    this.len = len;
   }
   
   @Override
   public void run() {
-    while (true) {
-      recv();
-      int num = Utils.toInt(packer.getData());
-      if (num == Client.FINISH) {
-        break;
-      } else if (num == CMD_UPLOAD) {
-        uploadService();
-      } else if (num == CMD_DOWNLOAD) {
-        downloadService();
-      }
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
+    if (cmd == CMD_UPLOAD) {
+      Writer writer = new Writer(name, len);
+      Receiver receiver = new Receiver(socket, packer, writer, 0);
+      receiver.recv();
+    } else if (cmd == CMD_DOWNLOAD) {
+      Reader reader = new Reader(name);
+      Sender sender = new Sender(socket, packer, reader, 0);
+      sender.send();
     }
   }
   

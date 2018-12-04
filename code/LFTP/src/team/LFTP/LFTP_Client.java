@@ -48,8 +48,7 @@ public class LFTP_Client {
           }
           name = strings[2];
           show("Connecting...");
-          client.connect(address, Server.PORT_LISTEN);
-          client.upload(name);
+          client.upload(address, Server.PORT_LISTEN, name);
           
         } else if (CMD_DOWNLOAD.equals(strings[0])) {
           try {
@@ -59,8 +58,7 @@ public class LFTP_Client {
           }
           name = strings[2];
           show("Connecting...");
-          client.connect(address, Server.PORT_LISTEN);
-          client.download(name);
+          client.download(address, Server.PORT_LISTEN, name);
         }
       }
     }
