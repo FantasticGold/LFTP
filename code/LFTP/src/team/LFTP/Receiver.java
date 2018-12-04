@@ -10,7 +10,7 @@ public class Receiver {
   Writer writer;
   
   // receive window
-  static final int RECV_WND_MAX_SIZE = 256;
+  static final int RECV_WND_MAX_SIZE = 128;
   DatagramPacket[] wndData;
   boolean[] wndAck;
   int seqNum;
@@ -47,10 +47,10 @@ public class Receiver {
       packer.toData(recvPacket);
       
       // save datagram packet
-      seqNum = Math.max(seqNum, packer.getSeqNum());
-      System.out.println("接收，序列号：" + packer.getSeqNum());
+      int num = packer.getSeqNum();
+      seqNum = Math.max(seqNum, num);
+      System.out.println("Receive: " + num);
       int pos = getPos(packer.getSeqNum());
-      System.out.println("存放，位置：" + pos);
       if (!wndAck[pos]) {
         wndAck[pos] = true;
         wndData[pos] = recvPacket;
@@ -58,9 +58,7 @@ public class Receiver {
       
       // ack
       while (ackNum <= seqNum && wndAck[getPos(ackNum)]) {
-//        System.out.println("写位置：" + getPos(ackNum));
         packer.toData(wndData[getPos(ackNum)]);
-//        System.out.println("写序列号：" + packer.getSeqNum());
         writer.write(packer.getData());
         wndAck[getPos(ackNum)] = false;
         ackNum = ackNum + 1;
@@ -73,5 +71,6 @@ public class Receiver {
         e.printStackTrace();
       }
     }
+    System.out.println("Receive Over");
   }
 }

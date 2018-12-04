@@ -4,42 +4,68 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.ShutdownChannelGroupException;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.Random;
 import java.util.Scanner;
 
 public class LFTP_Client {
+  private static final String CMD_HELP = "help";
+  private static final String CMD_UPLOAD = "lsend";
+  private static final String CMD_DOWNLOAD = "lget";
+  private static final String CMD_QUIT = "quit";
   
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
-    InetAddress address = null;
-    
-    System.out.print("Address: ");
-    try {
-      address = InetAddress.getByName(scanner.nextLine());
-    } catch (UnknownHostException e) {
-      e.printStackTrace();
-    }
-    
     Client client = new Client();
-    show("Connecting...");
-    client.connect(address, Server.PORT_LISTEN);
+    InetAddress address = null;
+    String name;
     
-    String cmd;
+    show("Welcome to LFTP!");
+    show("");
+    show("By Gold & Blasticag");
+    show("");
+    
     while (true) {
       showUI();
-      cmd = scanner.next();
+      String cmd = scanner.nextLine();
+      String[] strings = cmd.split(" ");
       
-      if (cmd.equals("upload")) {
-        String name = scanner.next();
-        show("Uploading...");
-        client.upload(name);
+      if (strings.length == 1) {
+        if (CMD_HELP.equals(strings[0])) {
+          show("UPLOAD: lsend server file");
+          show("DOWNLOAD: lget server file");
+          show("QUIT: quit");
+        } else if (CMD_QUIT.equals(strings[0])) {
+          break;
+        }
         
-      } else if (cmd.equals("download")) {
-        String name = scanner.next();
-        show("Downloading...");
-        client.download(name);
+      } else if (strings.length == 3) {
+        if (CMD_UPLOAD.equals(strings[0])) {
+          try {
+            address = InetAddress.getByName(strings[1]);
+          } catch (UnknownHostException e) {
+            e.printStackTrace();
+          }
+          name = strings[2];
+          show("Connecting...");
+          client.connect(address, Server.PORT_LISTEN);
+          client.upload(name);
+          
+        } else if (CMD_DOWNLOAD.equals(strings[0])) {
+          try {
+            address = InetAddress.getByName(strings[1]);
+          } catch (UnknownHostException e) {
+            e.printStackTrace();
+          }
+          name = strings[2];
+          show("Connecting...");
+          client.connect(address, Server.PORT_LISTEN);
+          client.download(name);
+        }
       }
     }
+    
+    show("Bye!");
   }
   
   static void show(String string) {
@@ -47,6 +73,11 @@ public class LFTP_Client {
   }
   
   static void showUI() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     System.out.print("LFTP> ");
   }
 }

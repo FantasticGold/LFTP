@@ -19,6 +19,7 @@ public class ServerThread implements Runnable {
   private DatagramSocket socket;
   private DatagramPacket recvPacket;
   Packer packer;
+  Reader reader;
   Writer writer;
   
   public ServerThread(InetAddress address, int port, int myPort) {
@@ -51,7 +52,7 @@ public class ServerThread implements Runnable {
     String name = Utils.toString(packer.getData());
     recv();
     long len = Utils.toLong(packer.getData());
-    writer = new Writer("F:\\recv.bmp", len);
+    writer = new Writer(name, len);
     
     Receiver receiver = new Receiver(socket, packer, writer, 0);
     receiver.recv();
@@ -60,13 +61,15 @@ public class ServerThread implements Runnable {
   private void downloadService() {
     recv();
     String name = Utils.toString(packer.getData());
-    
     Reader reader = new Reader(name);
-    while (reader.isOpen()) {
-      byte[] data = reader.read(Packer.MAX_DATA_LENGTH);
-      send(packer.toPacket(data));
-    }
-    send(packer.toPacket(Utils.toBytes(ServerThread.TAG_FINISH)));
+    send(reader.getFileLength());
+    
+    Sender sender = new Sender(socket, packer, reader, 0);
+    sender.send();
+  }
+  
+  public void send(long num) {
+    send(packer.toPacket(Utils.toBytes(num)));
   }
 
   private void send(DatagramPacket packet) {

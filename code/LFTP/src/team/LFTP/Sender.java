@@ -70,12 +70,13 @@ public class Sender {
       DatagramPacket packet;
       if (!queue.isEmpty()) {
         int num = queue.poll();
-        packet = wndData[num];
-        System.out.println("超时重传，确认号：" + num);
+        System.out.println("Overtime!\nResend: " + num);
+        packet = wndData[getPos(num)];
+        
       } else if (!isFull()) {
         packer.setSeqNum(seqNum);
+        System.out.println("Send: " + seqNum);
         packet = packer.toPacket(reader.read(Packer.MAX_DATA_LENGTH));
-        System.out.println("读，序列号：" + seqNum);
         wndData[getPos(seqNum)] = packet;
         seqNum = seqNum + 1;
       } else {
@@ -92,6 +93,7 @@ public class Sender {
         timing(ackNum);
       }
     }
+    System.out.println("Send Over");
   }
   
   public void timing(int ackNum) {
@@ -127,7 +129,6 @@ public class Sender {
         }
         ackPacker.toData(recvPacket);
         ackNum = ackPacker.getAckNum();
-        System.out.println("接收，确认号：" + ackNum);
         timing(ackNum);
       }
       manager.clear();

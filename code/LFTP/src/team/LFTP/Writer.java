@@ -10,7 +10,6 @@ public class Writer {
 	long requiredLength = 0;
 	
   public Writer(String name, long len) {
-    System.out.println("写文件长度：" + len);
   	try {
   		if (len <= 0) return;
 			file = new File(name);

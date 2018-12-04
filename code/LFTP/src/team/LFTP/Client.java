@@ -20,6 +20,7 @@ public class Client {
   private DatagramPacket recvPacket;
   Packer packer;
   Reader reader;
+  Writer writer;
   
   Client() {
     Random random = new Random();
@@ -32,19 +33,11 @@ public class Client {
     recvPacket = new DatagramPacket(buf, buf.length);
   }
   
-  @Override
-  protected void finalize() throws Throwable {
-    send(FINISH);
-    super.finalize();
-  }
-  
   public void connect(InetAddress address, int port) {
     packer = new Packer(address, port);
     send(packer.toPacket(Utils.toBytes(Server.REQUEST)));
     
-    System.out.println("发送连接请求");
     recv();
-    System.out.println("收到消息");
     packer.setPort(Utils.toInt(packer.getData()));
   }
   
@@ -59,11 +52,13 @@ public class Client {
   }
 
   public void download(String name) {
-//    send(ServerThread.CMD_DOWNLOAD);
-//    send(name);
+    send(ServerThread.CMD_DOWNLOAD);
+    send(name);
+    recv();
+    writer = new Writer(name, Utils.toLong(packer.getData()));
     
-//    Receiver receiver = new Receiver(socket, packer, 0, name, 0, 0);
-//    receiver.recv();
+    Receiver receiver = new Receiver(socket, packer, writer, 0);
+    receiver.recv();
   }
 
   public void send(long num) {
