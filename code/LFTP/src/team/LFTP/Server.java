@@ -14,8 +14,8 @@ import javax.swing.RepaintManager;
 import org.omg.CORBA.SystemException;
 
 public class Server {
-  static final int PORT_LISTEN = 1061;
-  static final int PORT_MIN = 2000;
+  static final int PORT_LISTEN = 5061;
+  static final int PORT_MIN = 6000;
   static final int PORT_RANGE = 2000;
   static final int REQUEST = 1327;
   private byte[] buf = new byte[Packer.MAX_LENGTH];
