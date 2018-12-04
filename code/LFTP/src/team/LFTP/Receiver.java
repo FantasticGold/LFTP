@@ -71,6 +71,6 @@ public class Receiver {
         e.printStackTrace();
       }
     }
-    System.out.println("Receive Over");
+    System.out.println("Receive Over!");
   }
 }

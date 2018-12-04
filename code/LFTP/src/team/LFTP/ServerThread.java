@@ -48,6 +48,12 @@ public class ServerThread implements Runnable {
   }
   
   private void uploadService() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
     recv();
     String name = Utils.toString(packer.getData());
     recv();
@@ -59,6 +65,12 @@ public class ServerThread implements Runnable {
   }
   
   private void downloadService() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
     recv();
     String name = Utils.toString(packer.getData());
     Reader reader = new Reader(name);

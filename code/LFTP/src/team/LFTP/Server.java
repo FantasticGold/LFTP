@@ -32,6 +32,7 @@ public class Server {
   }
   
   public void listen() {
+    Random random = new Random();
     System.out.println("Listening... ");
     while (true) {
       recv();
@@ -41,7 +42,6 @@ public class Server {
         int port = recvPacket.getPort();
         packer = new Packer(address, port);
         
-        Random random = new Random();
         int myPort = random.nextInt(PORT_RANGE) + PORT_MIN;
         byte[] data = Utils.toBytes(myPort);
         send(packer.toPacket(data));

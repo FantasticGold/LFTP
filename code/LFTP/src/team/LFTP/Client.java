@@ -42,6 +42,12 @@ public class Client {
   }
   
   public void upload(String name) {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
     send(ServerThread.CMD_UPLOAD);
     send(name);
     reader = new Reader(name);
@@ -52,6 +58,12 @@ public class Client {
   }
 
   public void download(String name) {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
     send(ServerThread.CMD_DOWNLOAD);
     send(name);
     recv();

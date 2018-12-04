@@ -93,7 +93,7 @@ public class Sender {
         timing(ackNum);
       }
     }
-    System.out.println("Send Over");
+    System.out.println("Send Over!");
   }
   
   public void timing(int ackNum) {
