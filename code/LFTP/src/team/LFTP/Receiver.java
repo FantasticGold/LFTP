@@ -3,7 +3,14 @@ package team.LFTP;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import javax.swing.text.html.HTMLDocument.HTMLReader.ParagraphAction;
+import javax.xml.crypto.Data;
+
+import org.omg.CosNaming.NamingContextExtPackage.AddressHelper;
 
 public class Receiver {
   DatagramSocket socket;
@@ -20,6 +27,7 @@ public class Receiver {
   public Receiver(DatagramSocket socket, Packer packer, Writer writer, int num) {
     this.socket = socket;
     this.packer = packer;
+    packer.setSYN(0);
     this.writer = writer;
     
     wndData = new DatagramPacket[RECV_WND_MAX_SIZE];
@@ -36,18 +44,14 @@ public class Receiver {
   }
   
   public void recv() {
+//    System.out.println("开始接收");
     boolean tag = true;
     
     while (true) {
-      if (tag) {
-        tag = false;
-        
-      } else {
-        try {
-          socket.setSoTimeout(1000);
-        } catch (SocketException e) {
-          e.printStackTrace();
-        }
+      try {
+        socket.setSoTimeout(1000);
+      } catch (SocketException e) {
+        e.printStackTrace();
       }
 
       // receive datagram packet
@@ -55,15 +59,48 @@ public class Receiver {
       DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
       try {
         socket.receive(recvPacket);
+        tag = false;
+        packer.setPort(recvPacket.getPort());
       } catch (IOException e) {
-        if (writer.isEnd()) break;
-        else continue;
+//        System.out.println(writer.requiredLength);
+//        System.out.println("等待超时");
+        if (tag) {
+//          System.out.println("标签为true");
+          packer.setAckNum(ackNum);
+          try {
+            socket.send(packer.toPacket(null));
+          } catch (IOException e1) {
+            e1.printStackTrace();
+          }
+          continue;
+        } else if (writer.isEnd()) {
+//          System.out.println("写完了");
+          break;
+        } else {
+//          System.out.println("没写完");
+          packer.setAckNum(ackNum);
+          packer.setWindowSize(RECV_WND_MAX_SIZE - (seqNum - ackNum));
+          try {
+            socket.send(packer.toPacket(null));
+          } catch (IOException e1) {
+            e1.printStackTrace();
+          }
+          continue;
+        }
       }
       packer.toData(recvPacket);
+      if (packer.isSYN()) {
+//        System.out.println("等待包");
+        continue;
+      } else {
+//        System.out.println("接受包");
+      }
+//      System.out.println("收到数据包");
 
       // save datagram packet
       int num = packer.getSeqNum();
       seqNum = Math.max(seqNum, num);
+//      System.out.println("地址：" + packer.getAddress() + "，端口：" + packer.getPort());
       System.out.println("Receive: " + num);
       int pos = getPos(packer.getSeqNum());
       if (num >= ackNum) {
@@ -85,6 +122,7 @@ public class Receiver {
       packer.setAckNum(ackNum);
       packer.setWindowSize(RECV_WND_MAX_SIZE - (seqNum - ackNum));
       try {
+//        System.out.println("发送：" + ackNum);
         socket.send(packer.toPacket(null));
       } catch (IOException e) {
         e.printStackTrace();

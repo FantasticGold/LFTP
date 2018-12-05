@@ -41,6 +41,7 @@ public class Sender {
   public Sender(DatagramSocket socket, Packer packer, Reader reader, int num) {
     this.socket = socket;
     this.packer = packer;
+    packer.setSYN(0);
     this.reader = reader;
     manager = TimerManager.getInstance();
     queue = new ConcurrentLinkedQueue<>(); 
@@ -70,11 +71,12 @@ public class Sender {
   }
   
   public void send() {
+//    System.out.println("开始发送");
     boolean tag = false;
     Thread thread = new Thread(new AckReceiver()); // receive ack
     thread.start();
     
-    while (reader.isOpen()) {
+    while (reader.isOpen() || !isEmpty()) {
       try {
         Thread.sleep(1);
       } catch (InterruptedException e1) {
@@ -85,9 +87,12 @@ public class Sender {
       if (!queue.isEmpty()) {
         int num = queue.poll();
         System.out.println("Overtime!\nResend: " + num);
-        packet = wndData[getPos(num)];
+        packer.toData(wndData[getPos(num)]);
+        packet = packer.toPacket(packer.getData());
+//        System.out.println("重发地址：" + packet.getAddress() + "端口：" + packet.getPort());
         
-      } else if (!isFull()) {
+      } else if (!isFull() && reader.isOpen()) {
+//        System.out.println("长度：" + reader.getFileLength());
         packer.setSeqNum(seqNum);
         System.out.println("Send: " + seqNum);
         packet = packer.toPacket(reader.read(Packer.MAX_DATA_LENGTH));
@@ -109,11 +114,6 @@ public class Sender {
       }
     }
     
-    try {
-      thread.join();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
     System.out.println("Send Over!");
   }
   
@@ -144,29 +144,30 @@ public class Sender {
     
     @Override
     public void run() {
-      boolean tag = true;
       int cnt = 0;
       int before = -1;
       
       while (true) {
-        if (tag) {
-          tag = false;
-        } else {
-          try {
-            socket.setSoTimeout(1000);
-          } catch (SocketException e) {
-            e.printStackTrace();
-          }
+        try {
+          socket.setSoTimeout(1000);
+        } catch (SocketException e) {
+          e.printStackTrace();
         }
 
         try {
           socket.receive(recvPacket);
+//          System.out.println("地址：" + recvPacket.getAddress() + "端口：" + recvPacket.getPort());
+          packer.setAddress(recvPacket.getAddress());
+          packer.setPort(recvPacket.getPort());
         } catch (IOException e) {
           if (!reader.isOpen() && isEmpty()) break;
           else continue;
         }
-
         ackPacker.toData(recvPacket);
+        if (ackPacker.isSYN()) {
+          continue;
+        }
+        
         recvWndSize = ackPacker.getWindowSize();
         ackNum = ackPacker.getAckNum();
           

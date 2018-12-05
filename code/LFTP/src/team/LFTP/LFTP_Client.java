@@ -27,7 +27,7 @@ public class LFTP_Client {
     
     while (true) {
       showUI();
-      String cmd = scanner.nextLine();
+      String cmd = scanner.nextLine().trim();
       String[] strings = cmd.split(" ");
       
       if (strings.length == 1) {

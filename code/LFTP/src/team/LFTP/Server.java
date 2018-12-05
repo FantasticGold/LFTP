@@ -39,6 +39,7 @@ public class Server {
     
     while (true) {
       recv();
+      packer.setPort(recvPacket.getPort());
 //      System.out.println("get");
       
       byte[] data = packer.getData();
@@ -61,6 +62,7 @@ public class Server {
         byte[] bmyPort = Utils.toBytes(myPort);
         byte[] info = new byte[64];
         System.arraycopy(bmyPort, 0, info, 0, 4);
+        packer.setSYN(1);
         DatagramPacket packet = packer.toPacket(info);
 
         try {
@@ -70,6 +72,7 @@ public class Server {
         }
         while (true) {
           try {
+//            System.out.println("发送包1");
             socket.send(packet);
 //            System.out.println("send upload");
           } catch (IOException e1) {
@@ -105,7 +108,9 @@ public class Server {
         byte[] info = new byte[64];
         System.arraycopy(bmyPort, 0, info, 0, 4);
         System.arraycopy(blen, 0, info, 4, 8);
+        packer.setSYN(1);
         DatagramPacket packet = packer.toPacket(info);
+//        System.out.println("端口：" + myPort);
 
         try {
           socket.setSoTimeout(2000);
@@ -114,6 +119,7 @@ public class Server {
         }
         while (true) {
           try {
+//            System.out.println("发送包2");
             socket.send(packet);
 //            System.out.println("send download");
           } catch (IOException e1) {
@@ -135,14 +141,6 @@ public class Server {
             myPort, ServerThread.CMD_DOWNLOAD, name, 0)).start();
         
       }
-    }
-  }
-
-  private void send(DatagramPacket packet) {
-    try {
-      socket.send(packet);
-    } catch (IOException e) {
-      e.printStackTrace();
     }
   }
   

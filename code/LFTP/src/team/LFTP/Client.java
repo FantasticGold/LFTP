@@ -25,6 +25,7 @@ public class Client {
   Client() {
     Random random = new Random();
     int port = random.nextInt(PORT_RANGE) + PORT_MIN;
+//    System.out.println("端口：" + port);
     try {
       socket = new DatagramSocket(port);
     } catch (SocketException e) {
@@ -77,6 +78,11 @@ public class Client {
     byte[] bport = new byte[4];
     System.arraycopy(data, 0, bport, 0, 4);
     packer.setPort(Utils.toInt(bport));
+//    try {
+////      System.out.println("地址: " + InetAddress.getLocalHost());
+//    } catch (UnknownHostException e1) {
+//      e1.printStackTrace();
+//    }
     
     try {
       Thread.sleep(2000);
@@ -137,6 +143,12 @@ public class Client {
 //    System.out.println("收到的长度为："+len);
     if (len == 0) return;
     writer = new Writer(name, len);
+
+//    try {
+//      Thread.sleep(1000);
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    }
     
     Receiver receiver = new Receiver(socket, packer, writer, 0);
     receiver.recv();
